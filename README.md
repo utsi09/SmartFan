@@ -62,5 +62,20 @@
 
 ## 시스템 구조
 
+<center><img src="https://user-images.githubusercontent.com/92018822/208086434-f8dd63bd-407b-40d1-b035-a9a64ed67690.png" width="800" height="400"></center>
+
+시스템은 다음과 같은 구조를 가지고 있음
+
+* 블루투스 모듈
+* 푸쉬버튼
+* 초음파 센서
+* 소리 부저
+* LED
+* 스텝모터 드라이브
+* 스텝 모터
+* DC모터 
+
+시스템에 사용된 모듈로, 총 8개의 모듈이 사용됨.
+
 
 
