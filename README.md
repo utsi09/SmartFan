@@ -18,7 +18,7 @@
 
 * 20170766_이건우
 
-* 김영호
+* 20191333_김영호
 
 ## 프로젝트의 목적
 
@@ -44,5 +44,6 @@
 
 ## 일정 
 
-간트 차트 넣기
+<center><img src="https://user-images.githubusercontent.com/92018822/208080903-b8e3cf7b-75f7-459d-adfd-971d23de236e.png" width="300" height="300"></center>
+
 
