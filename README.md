@@ -101,3 +101,83 @@
          pthread_mutex_unlock(&lock);
 
    
+시리얼 함수에서 구현된 뮤텍스
+
+                    pthread_mutex_lock(&lock);
+         switch(dat)
+         {
+            case '0':
+               if(power ==1){
+                  power = 0;
+                  speed = 0;
+                  w_dir = 0;         
+               }
+               else if(power ==0){
+               power = 1;
+               speed = SP1;
+               }
+               break;
+            case '1':
+               power = 1;
+               speed = SP1;
+               printf("단");
+               break;
+            case '2':
+               power = 1;
+               speed = SP2;
+               printf("단");
+               break;
+            case '3':
+               power = 1;
+               speed = SP3;
+               printf("단");
+               break;
+            case '4':
+               if(w_dir ==1){
+                  w_dir = 0;         
+               }
+               else if(w_dir ==0){
+                  w_dir = 1;
+               }
+            
+               break;
+                           
+         }
+         pthread_mutex_unlock(&lock);
+
+
+쓰레드 구현을 위해 5개의 쓰레드 함수가 존재함
+
+           void *motor()
+           
+           void *ultra()
+           
+           void *serial()
+           
+           void *led()
+           
+           void *step()
+          
+이 함수들로 이루어진 멀티 쓰레드를 구성
+
+           pthread_t p_thread1;
+           pthread_t p_thread2;
+           pthread_t p_thread3;
+           pthread_t p_thread4;
+           pthread_t p_thread5;
+
+           int status=0;
+
+           pthread_create(&p_thread1, NULL, motor, NULL); //dc
+           pthread_create(&p_thread2, NULL, ultra, NULL); // 초음파
+           pthread_create(&p_thread3, NULL, serial, NULL); //블루투스
+           pthread_create(&p_thread4, NULL, led, NULL); // led
+           pthread_create(&p_thread5, NULL, step, NULL); //스텝모터
+           
+           pthread_join(p_thread1, (void **)&status);
+           pthread_join(p_thread2, (void **)&status);
+           pthread_join(p_thread3, (void **)&status);  
+           pthread_join(p_thread4, (void **)&status);
+           pthread_join(p_thread5, (void **)&status);
+   
+   
