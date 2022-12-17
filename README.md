@@ -77,5 +77,27 @@
 
 시스템에 사용된 모듈로, 총 8개의 모듈이 사용됨.
 
+## 회로 설계
 
+<center><img src="https://user-images.githubusercontent.com/92018822/208218873-c93aa97d-576b-48a5-a70a-ae3dd7658ba3.png" width="800" height="400"></center>
 
+위 이미지와 같이 회로를 설계하였음
+
+## 제한 조건
+
+제한 조건중 멀티쓰레드, 뮤텍스를 구현하였음.
+
+모터 함수에서 구현된 뮤텍스
+
+           pthread_mutex_lock(&lock);
+         if(power ==1){
+            power = 0;
+            speed = 0;         
+         }
+         else if(power ==0){
+         power = 1;
+         speed = SP1; 
+         }
+         pthread_mutex_unlock(&lock);
+
+   
