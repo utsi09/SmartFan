@@ -4,9 +4,9 @@
 
 * 프로젝트 소개: 프로젝트의 목적, 주요 업무 내용, 참가자 명단 등을 소개
 
-* 프로젝트 진행 과정: 프로젝트의 진행 과정을 자세히 설명한다. 핵심 기능과 상이한 일정, 회로 설계, 시스템 구조, 제한조건 등을 기술
+* 프로젝트 진행 과정: 프로젝트의 진행 과정을 자세히 설명한다. 핵심 기능과 상이한 일정, 회로 설계, 시스템 구조, 제한조건, 코드의 상세한 설명 등을 기술
 
-* 결과 및 성과: 프로젝트를 수행한 결과를 자세히 설명한다. 계획된 결과와 실제 결과, 인적/물적 자산과의 연계와 코드의 상세한 설명, 작동원리 등을 기술 
+* 결과 및 성과: 프로젝트를 수행한 결과를 자세히 설명한다. 계획된 결과와 실제 결과, 인적/물적 자산과의 연계와 작동원리 등을 기술 
 
 * 요약 및 제안: 프로젝트의 전반적인 요약과 추후 계획을 기술
 
@@ -181,3 +181,353 @@
            pthread_join(p_thread5, (void **)&status);
    
    
+   
+   ## 코드 설명
+   
+   
+   ### 변수 설명
+   
+           int power = 0;
+           int speed = 0, dir=1;
+           int w_dir = 0;
+           int s_dir = 0;
+           int curAngle = 0;
+
+   * power : 선풍기의 전원을 관리 
+   * speed : 선풍기의 풍속을 관리
+   * dir : DC모터의 프로펠러의 회전 방향
+   * W_dir : 풍향을 담당하는 스텝모터의 전원을 관리
+   * s_dir : 스텝모터가 회전 중인 현재 방향
+   
+   ### 풍속 정의
+   
+           #define SP1 33
+           #define SP2 66
+           #define SP3 100
+         
+* 풍속 1단계 : SP1
+* 풍속 2단계 : SP2
+* 풍속 3단계 : SP3
+
+
+### 초기화 과정
+
+           void init()
+           {
+              pinMode (trigPin, OUTPUT);
+              pinMode (echoPin, INPUT);
+              pinMode (sound, OUTPUT);
+              pinMode(BUTTON,INPUT);
+              pinMode(LED1, OUTPUT);
+              pinMode(LED2, OUTPUT);
+              pinMode(LED3, OUTPUT);
+              pinMode(PWM0, PWM_OUTPUT);  
+              pinMode(PWM1, PWM_OUTPUT);
+              pwmSetMode(PWM_MODE_MS);
+
+              int length;
+              FILE* fp = fopen("setting.txt","r");
+              if (fp != NULL)
+              {
+                 char buf1[10];
+                 fgets(buf1, 10, fp);
+                 curAngle = atoi(buf1);
+
+
+                 char buf2[10];
+                 fgets(buf2, 10, fp);
+                 s_dir = atoi(buf2);
+
+                 fclose(fp);
+              }   
+              printf("a: %d,    w: %d\n",curAngle,s_dir);
+           }
+           
+모듈들의 핀 입출력을 초기화
+
+종료전의 스텝모터의 각도 위치 정보와 진행중이던 회전 방향을 텍스트파일에서 read
+
+## motor 함수
+
+           void *motor(){
+
+              int range = 101;
+              int divisor;
+              int temp = 0;
+              divisor = 19200 / range;
+
+              pwmSetRange(range);
+              pwmSetClock(divisor);
+              pwmWrite(PWM1, 0);
+              pwmWrite(PWM0, 0);
+
+              while(1)
+              {
+                 if(digitalRead(BUTTON)==0){
+                    dir = 1;
+
+
+                    pthread_mutex_lock(&lock);
+                    if(power ==1){
+                       power = 0;
+                       speed = 0;         
+                    }
+                    else if(power ==0){
+                    power = 1;
+                    speed = SP1;
+
+                    }
+                    pthread_mutex_unlock(&lock);
+                    delay(500);
+                    if(temp <= 0) {
+                       temp = 1;
+                    }
+                    else if(temp >= 1) {
+                       temp = 0;
+                    }
+                 }
+
+                 if(power ==1) {
+                    motor_rotate(speed , dir);
+                    if(temp == 1){
+                    printf("전원 ON!\n");
+                    }
+                    temp= temp + 1;
+                 }
+                 else {
+                    motor_rotate(0 , dir);
+                    if(temp == 0){
+                    printf("전원 OFF!\n");
+                    }
+                    temp= temp  - 1;
+                 }
+
+                 delay(10);
+              }
+           }
+           
+  
+## ultra 함수
+
+           void *ultra() {
+
+              int distance=0;
+                int pulse = 0;
+
+                long startTime;
+                long travelTime;
+              int tempSpeed;
+              int tempPower;
+              int temp= 0;
+              while(1)
+              {
+
+                 digitalWrite (trigPin, LOW);
+                 delay(1); //5hz
+                 digitalWrite (trigPin, HIGH);
+                 delay(2);
+                 digitalWrite (trigPin, LOW);
+
+
+                 while(digitalRead(echoPin) == 0);
+                    startTime = micros();
+
+                 while(digitalRead(echoPin) == 1);
+                    travelTime = micros() - startTime;
+
+                 int distance = travelTime / 58;
+
+                 //printf( "Distance: %dmm\n", distance * 10);
+
+                 if(distance >20 && distance < 30){
+                    digitalWrite(sound, HIGH);
+                    delay(200);
+                    digitalWrite(sound, LOW);
+                    delay(200);
+                    digitalWrite(sound, HIGH);
+                    delay(200);
+                    digitalWrite(sound, LOW);
+                    delay(200);
+                 }
+                 else if(distance < 20) {
+                    if(temp == 0 ){
+                       tempSpeed = speed;
+                       tempPower = power;
+                       temp = 1;
+                    }
+                    dir = 0;
+                    if(tempSpeed == SP1){
+                       delay(250);
+                    }
+                    else if(tempSpeed == SP2){
+                       delay(230);
+                    }
+                    else if(tempSpeed == SP3){
+                       delay(150);
+                    }
+                    dir = 1;
+                    speed = 0;
+                    power = 0;
+                    digitalWrite(sound, HIGH);
+                    delay(50);
+                    digitalWrite(sound, LOW);
+                    delay(50);
+                    digitalWrite(sound, HIGH);
+                    delay(50);
+                    digitalWrite(sound, LOW);
+                    delay(50);
+
+
+                 }
+                 else{
+                    if(temp == 1) {
+                       power = tempPower;
+                       speed = tempSpeed;
+                       temp = 0;
+                    }
+                    digitalWrite(sound, LOW);
+                 }
+                 delay(200);
+              }
+
+           }
+
+## serial 함수
+
+           void *serial(){
+
+              int fd_serial ; //디바이스 파일 서술자
+              unsigned char dat; //임시 데이터 저장 변수
+
+              if ((fd_serial = serialOpen (UART2_DEV, BAUD_RATE)) < 0) //UART2 포트 오픈
+              {   
+                 printf ("Unable to open serial device.\n") ;
+                 return 0;
+              }
+
+              while(1){
+                 if(serialDataAvail (fd_serial) ){ //읽을 데이터가 존재한다면,
+                    dat = serialRead (fd_serial); //버퍼에서 1바이트 값을 읽음
+                    printf ("%c", dat) ;
+
+
+                    pthread_mutex_lock(&lock);
+                    switch(dat)
+                    {
+                       case '0':
+                          if(power ==1){
+                             power = 0;
+                             speed = 0;
+                             w_dir = 0;         
+                          }
+                          else if(power ==0){
+                          power = 1;
+                          speed = SP1;
+                          }
+                          break;
+                       case '1':
+                          power = 1;
+                          speed = SP1;
+                          printf("단");
+                          break;
+                       case '2':
+                          power = 1;
+                          speed = SP2;
+                          printf("단");
+                          break;
+                       case '3':
+                          power = 1;
+                          speed = SP3;
+                          printf("단");
+                          break;
+                       case '4':
+                          if(w_dir ==1){
+                             w_dir = 0;         
+                          }
+                          else if(w_dir ==0){
+                             w_dir = 1;
+                          }
+
+                          break;
+
+                    }
+                    pthread_mutex_unlock(&lock);
+
+                    fflush (stdout) ;
+                    }
+                 delay (10);
+              }
+
+           }
+
+## led 함수
+
+           void *led(){
+              while(1) {
+                 switch (speed)
+                 {
+                    case 0:
+                       digitalWrite (LED1, LOW);
+                       digitalWrite (LED2, LOW);
+                       digitalWrite (LED3, LOW);
+                       break;
+                    case SP1:
+                       digitalWrite (LED1, HIGH);
+                       digitalWrite (LED2, LOW);
+                       digitalWrite (LED3, LOW);
+                       break;
+                    case SP2:
+                       digitalWrite (LED1, HIGH);
+                       digitalWrite (LED2, HIGH);
+                       digitalWrite (LED3, LOW);
+                       break;
+                    case SP3:
+                       digitalWrite (LED1, HIGH);
+                       digitalWrite (LED2, HIGH);
+                       digitalWrite (LED3, HIGH);
+                       break;
+                 }
+              delay (10);
+              }
+           }
+
+## step 함수 
+
+           void *step()
+           {
+              init_Step();
+              int angle = 180;
+
+
+             while(1){
+
+                   if(w_dir ==1)
+                   {
+
+
+                    if (curAngle > 0 && curAngle < 180)
+                    {
+
+
+                         one_two_Phase_Rotate_Angle(curAngle, s_dir);
+
+
+                       printf("%d\n", curAngle);
+                       fflush (stdout) ;
+
+                    }
+
+                    if (s_dir == 1) s_dir = 0;
+                    else if(s_dir == 0) s_dir = 1;
+
+                    one_two_Phase_Rotate_Angle(angle, s_dir);   
+
+
+                   }
+                }
+
+              one_two_Phase_Rotate_Angle(curAngle, s_dir);
+              init_Step();
+              delay(1000);
+             }
+
