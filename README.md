@@ -243,9 +243,9 @@
               printf("a: %d,    w: %d\n",curAngle,s_dir);
            }
            
-모듈들의 핀 입출력을 초기화
+* 모듈들의 핀 입출력을 초기화
 
-종료전의 스텝모터의 각도 위치 정보와 진행중이던 회전 방향을 텍스트파일에서 read
+* 종료전의 스텝모터의 각도 위치 정보와 진행중이던 회전 방향을 텍스트파일에서 Read
 
 ## motor 함수
 
@@ -489,6 +489,87 @@
                  }
               delay (10);
               }
+           }
+
+## one_two_Phase_Rotate_Angle 함수
+
+           void one_two_Phase_Rotate_Angle(float angle, int dir)
+           {
+              int steps = angle * 11.3777;
+              int temp = angle;
+              //int steps = angle * 9;
+              switch(dir){
+                 case 0:
+                 for(int i = steps; i>=0; i--){
+
+                    curAngle = i / 11.3777;
+                    curAngle += 1;
+
+                    if (power == 0 || w_dir == 0)
+                    {
+
+
+                       FILE* fp = fopen("setting.txt","w");
+
+                       if(fp != NULL)
+                       {
+                          char buf1[10];
+                          sprintf(buf1,"%d\n", curAngle);
+                          fputs(buf1,fp);
+
+                          char buf2[10];
+                          sprintf(buf2,"%d", s_dir);
+                          fputs(buf2,fp);
+                          fclose(fp);
+                       }
+
+                        break;
+                    }
+                    digitalWrite(pin_arr[0], one_phase[i%8][0]);
+                    digitalWrite(pin_arr[1], one_phase[i%8][1]);
+                    digitalWrite(pin_arr[2], one_phase[i%8][2]);
+                    digitalWrite(pin_arr[3], one_phase[i%8][3]);
+                    delay(2);
+
+                    }
+                    break;
+                 case 1:         
+                 for(int i = 0; i<steps; i++){
+
+
+                    curAngle = i / 11.3777;
+                    curAngle = temp - curAngle -1;
+
+
+                    if (power == 0 || w_dir == 0)
+                    {
+
+
+                       FILE* fp = fopen("setting.txt","w");
+
+                       if(fp != NULL)
+                       {
+                          char buf1[10];
+                          sprintf(buf1,"%d\n", curAngle);
+                          fputs(buf1,fp);
+
+                          char buf2[10];
+                          sprintf(buf2,"%d", s_dir);
+                          fputs(buf2,fp);
+                          fclose(fp);
+                       }
+
+                        break;
+                    }
+                    digitalWrite(pin_arr[0], one_phase[i%8][0]);
+                    digitalWrite(pin_arr[1], one_phase[i%8][1]);
+                    digitalWrite(pin_arr[2], one_phase[i%8][2]);
+                    digitalWrite(pin_arr[3], one_phase[i%8][3]);
+                    delay(2);
+                 }
+
+              }
+
            }
 
 ## step 함수 
