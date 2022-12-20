@@ -767,9 +767,9 @@ DC모터와 스텝모터의 결합이 가장 어려웠던 부분이었는데
 
 ### 데모.ver
 
-[![Video Label](http://img.youtube.com/vi/'https://www.youtube.com/watch?v=cjrltorpJew'/0.jpg)](https://youtu.be/'https://www.youtube.com/watch?v=cjrltorpJew')
+[![Video Label](http://img.youtube.com/vi/'cjrltorpJew'/0.jpg)](https://youtu.be/'cjrltorpJew')
 
 
 ### 최종.ver
 
-[![Video Label](http://img.youtube.com/vi/'https://www.youtube.com/watch?v=ZuX303351OU'/0.jpg)](https://youtu.be/'https://www.youtube.com/watch?v=ZuX303351OU')
+[![Video Label](http://img.youtube.com/vi/'ZuX303351OU'/0.jpg)](https://youtu.be/'ZuX303351OU')
